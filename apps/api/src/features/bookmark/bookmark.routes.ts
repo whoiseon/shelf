@@ -1,7 +1,10 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import {
+	bookmarkSchema,
 	createBookmarkSchema,
 	deleteBookmarkParamSchema,
+	previewBookmarkSchema,
+	previewBookmarkUrlSchema,
 	updateBookmarkParamSchema,
 	updateBookmarkSchema,
 } from '@shelf/shared';
@@ -10,19 +13,13 @@ import { createBookmarkService } from '@/features/bookmark/bookmark.service';
 
 const bookmarkService = createBookmarkService();
 
-const bookmarkSchema = z
-	.object({
-		id: z.number().int(),
-		title: z.string(),
-		url: z.string().nullable(),
-		description: z.string().nullable(),
-		faviconUrl: z.string().nullable(),
-		isFavorite: z.boolean().nullable(),
-		createdAt: z.iso.datetime(),
-		updatedAt: z.iso.datetime(),
-		deletedAt: z.iso.datetime().nullable(),
-	})
+const bookmarkResponseSchema = z
+	.object(bookmarkSchema.shape)
 	.openapi('Bookmark');
+
+const previewBookmarkResponseSchema = z
+	.object(previewBookmarkSchema.shape)
+	.openapi('PreviewBookmark');
 
 const errorResponseSchema = z
 	.object({
@@ -42,7 +39,7 @@ const listBookmarksRoute = createRoute({
 			content: {
 				'application/json': {
 					schema: z.object({
-						payload: z.array(bookmarkSchema),
+						payload: z.array(bookmarkResponseSchema),
 						message: z.string().optional(),
 					}),
 				},
@@ -72,7 +69,7 @@ const createBookmarkRoute = createRoute({
 			content: {
 				'application/json': {
 					schema: z.object({
-						payload: bookmarkSchema,
+						payload: bookmarkResponseSchema,
 						message: z.string().optional(),
 					}),
 				},
@@ -109,7 +106,7 @@ const updateBookmarkRoute = createRoute({
 			content: {
 				'application/json': {
 					schema: z.object({
-						payload: bookmarkSchema,
+						payload: bookmarkResponseSchema,
 						message: z.string().optional(),
 					}),
 				},
@@ -165,6 +162,43 @@ const deleteBookmarkRoute = createRoute({
 	},
 });
 
+const previewBookmarkRoute = createRoute({
+	method: 'post',
+	path: '/preview',
+	tags: ['Bookmarks'],
+	summary: 'URL 프리뷰 조회',
+	request: {
+		body: {
+			required: true,
+			content: {
+				'application/json': {
+					schema: previewBookmarkUrlSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'URL 프리뷰 조회 성공',
+			content: {
+				'application.json': { schema: previewBookmarkResponseSchema },
+			},
+		},
+		400: {
+			description: '잘못된 URL',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+		404: {
+			description: '존재하지 않는 URL',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+	},
+});
+
 const bookmarkRoutes = new OpenAPIHono({
 	defaultHook: (result, c) => {
 		if (!result.success) {
@@ -200,6 +234,16 @@ const bookmarkRoutes = new OpenAPIHono({
 		}
 
 		return response.success(c, { isDeleted: true as const });
+	})
+	.openapi(previewBookmarkRoute, async (c) => {
+		const input = c.req.valid('json');
+		const { payload, message } = await bookmarkService.previewUrl(input.url);
+
+		if (!payload) {
+			return response.internalError(c, message || '알 수 없는 오류');
+		}
+
+		return response.success(c, payload);
 	});
 
 export { bookmarkRoutes };
