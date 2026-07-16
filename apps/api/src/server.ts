@@ -1,9 +1,13 @@
 import { serve } from '@hono/node-server';
-import type { Hono } from 'hono';
+import type { Env, Hono, Schema } from 'hono';
 import { closeDatabase } from '@/common/database';
 import { env } from '@/common/utils';
 
-export function factoryServer(app: Hono) {
+export function factoryServer<
+	TEnv extends Env,
+	TSchema extends Schema,
+	TBasePath extends string,
+>(app: Hono<TEnv, TSchema, TBasePath>) {
 	const server = serve({
 		fetch: app.fetch,
 		port: env.PORT,

@@ -1,10 +1,12 @@
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { factoryServer } from '@/server';
+import { configureSwagger } from '@/swagger';
 import { appRoutes } from './features';
 
-const app = new Hono();
+const app = new OpenAPIHono().route('/', appRoutes);
 
-// init routes
-app.route('/', appRoutes);
+configureSwagger(app);
 
 factoryServer(app);
+
+export type AppType = typeof app;

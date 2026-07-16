@@ -8,6 +8,8 @@
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.0.9",
+		"@hono/swagger-ui": "^0.6.1",
+		"@hono/zod-openapi": "^1.5.1",
 		"@shelf/db": "workspace:*",
 		"@shelf/shared": "workspace:*",
 		"dotenv": "^17.4.2",
