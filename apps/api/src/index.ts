@@ -1,19 +1,10 @@
-import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
-import { env } from './common/utils';
+import { factoryServer } from '@/server';
+import { appRoutes } from './features';
 
 const app = new Hono();
 
-app.get('/', (c) => {
-	return c.text('Hello Hono!');
-});
+// init routes
+app.route('/', appRoutes);
 
-serve(
-	{
-		fetch: app.fetch,
-		port: env.PORT,
-	},
-	(info) => {
-		console.log(`Server is running on http://localhost:${info.port}`);
-	},
-);
+factoryServer(app);
