@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarks` ADD `deleted_at` integer;

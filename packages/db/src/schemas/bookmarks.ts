@@ -19,6 +19,9 @@ export const bookmarks = sqliteTable('bookmarks', {
 	})
 		.notNull()
 		.$defaultFn(() => new Date()),
+	deletedAt: integer('deleted_at', {
+		mode: 'timestamp_ms',
+	}),
 });
 
 export type BookmarkSelect = typeof bookmarks.$inferSelect;

@@ -8,6 +8,13 @@
 			"when": 1784103505314,
 			"tag": "0000_smart_argent",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1784170282198,
+			"tag": "0001_fearless_crystal",
+			"breakpoints": true
 		}
 	]
 }
