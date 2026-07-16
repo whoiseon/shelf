@@ -26,6 +26,7 @@ export const createBookmarkSchema = z.object({
 	siteName: z.string().nullable(),
 	faviconUrl: z.string().nullable(),
 	imageUrl: z.string().nullable(),
+	isFavorite: z.boolean().default(false),
 });
 
 export type CreateBookmarkInput = z.infer<typeof createBookmarkSchema>;
@@ -59,3 +60,7 @@ export const previewBookmarkSchema = z.object({
 });
 
 export type PreviewBookmark = z.infer<typeof previewBookmarkSchema>;
+
+export const favoriteBookmarkParamSchema = z.object({
+	id: positiveIntId,
+});

@@ -3,13 +3,18 @@ import {
 	bookmarkSchema,
 	createBookmarkSchema,
 	deleteBookmarkParamSchema,
+	favoriteBookmarkParamSchema,
 	previewBookmarkSchema,
 	previewBookmarkUrlSchema,
 	updateBookmarkParamSchema,
 	updateBookmarkSchema,
 } from '@shelf/shared';
 import { response } from '@/common/utils';
-import { createBookmarkService } from '@/features/bookmark/bookmark.service';
+import {
+	BookmarkAlreadyExistsError,
+	BookmarkNotFoundError,
+	createBookmarkService,
+} from '@/features/bookmark/bookmark.service';
 
 const bookmarkService = createBookmarkService();
 
@@ -77,6 +82,12 @@ const createBookmarkRoute = createRoute({
 		},
 		400: {
 			description: '잘못된 요청',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+		409: {
+			description: '이미 등록된 북마크',
 			content: {
 				'application/json': { schema: errorResponseSchema },
 			},
@@ -199,6 +210,41 @@ const previewBookmarkRoute = createRoute({
 	},
 });
 
+const favoriteBookmarkRoute = createRoute({
+	method: 'post',
+	path: '/favorite/{id}',
+	tags: ['Bookmarks'],
+	summary: '북마크 좋아요 토글',
+	request: {
+		params: favoriteBookmarkParamSchema,
+	},
+	responses: {
+		200: {
+			description: '북마크 좋아요 토글 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: z.object({ isFavorite: z.boolean() }),
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+		400: {
+			description: '잘못된 요청',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+		404: {
+			description: '북마크를 찾을 수 없음',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+	},
+});
+
 const bookmarkRoutes = new OpenAPIHono({
 	defaultHook: (result, c) => {
 		if (!result.success) {
@@ -213,10 +259,18 @@ const bookmarkRoutes = new OpenAPIHono({
 		return response.success(c, bookmarks);
 	})
 	.openapi(createBookmarkRoute, async (c) => {
-		const input = c.req.valid('json');
-		const bookmark = await bookmarkService.createBookmark(input);
+		try {
+			const input = c.req.valid('json');
+			const bookmark = await bookmarkService.createBookmark(input);
 
-		return response.created(c, bookmark);
+			return response.created(c, bookmark);
+		} catch (error: unknown) {
+			if (error instanceof BookmarkAlreadyExistsError) {
+				return response.conflict(c, error.message);
+			}
+
+			throw error;
+		}
 	})
 	.openapi(updateBookmarkRoute, async (c) => {
 		const { id } = c.req.valid('param');
@@ -240,10 +294,26 @@ const bookmarkRoutes = new OpenAPIHono({
 		const { payload, message } = await bookmarkService.previewUrl(input.url);
 
 		if (!payload) {
-			return response.internalError(c, message || '알 수 없는 오류');
+			return response.internalError(
+				c,
+				message || 'metadata 파싱 중 오류가 발생했습니다.',
+			);
 		}
 
 		return response.success(c, payload);
+	})
+	.openapi(favoriteBookmarkRoute, async (c) => {
+		const { id } = c.req.valid('param');
+		try {
+			const isFavorite = await bookmarkService.toggleFavorite(id);
+			return response.success(c, { isFavorite });
+		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return response.notFound(c, error.message);
+			}
+
+			throw error;
+		}
 	});
 
 export { bookmarkRoutes };

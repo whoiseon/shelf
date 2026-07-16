@@ -1,6 +1,6 @@
 import { type BookmarkInsert, bookmarks } from '@shelf/db';
 import type { UpdateBookmarkInput } from '@shelf/shared';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/common/database';
 
 export function createBookmarkRepository() {
@@ -15,6 +15,11 @@ export function createBookmarkRepository() {
 		findById: async (id: number) => {
 			return db.query.bookmarks.findFirst({
 				where: and(eq(bookmarks.id, id), isNull(bookmarks.deletedAt)),
+			});
+		},
+		findByUrl: async (url: string) => {
+			return db.query.bookmarks.findFirst({
+				where: eq(bookmarks.url, url),
 			});
 		},
 		create: async (input: BookmarkInsert) => {
@@ -42,6 +47,34 @@ export function createBookmarkRepository() {
 				})
 				.where(eq(bookmarks.id, id))
 				.returning()
+				.get();
+		},
+		restore: async (id: number, input: UpdateBookmarkInput) => {
+			const values = Object.fromEntries(
+				Object.entries(input).filter(([, value]) => value !== undefined),
+			);
+			return db
+				.update(bookmarks)
+				.set({
+					...values,
+					deletedAt: null,
+					updatedAt: new Date(),
+				})
+				.where(eq(bookmarks.id, id))
+				.returning()
+				.get();
+		},
+		toggleFavorite: async (id: number) => {
+			return db
+				.update(bookmarks)
+				.set({
+					isFavorite: sql`NOT ${bookmarks.isFavorite}`,
+					updatedAt: new Date(),
+				})
+				.where(and(eq(bookmarks.id, id), isNull(bookmarks.deletedAt)))
+				.returning({
+					isFavorite: bookmarks.isFavorite,
+				})
 				.get();
 		},
 	} as const;
