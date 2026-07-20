@@ -4,6 +4,8 @@ import {
 	createBookmarkSchema,
 	deleteBookmarkParamSchema,
 	favoriteBookmarkParamSchema,
+	moveBookmarkParamSchema,
+	moveBookmarkSchema,
 	previewBookmarkSchema,
 	previewBookmarkUrlSchema,
 	updateBookmarkParamSchema,
@@ -13,8 +15,9 @@ import { response } from '@/common/utils';
 import {
 	BookmarkAlreadyExistsError,
 	BookmarkNotFoundError,
+	BookmarkTargetFolderNotFoundError,
 	createBookmarkService,
-} from '@/features/bookmark/bookmark.service';
+} from '@/features/bookmarks/bookmarks.service';
 
 const bookmarkService = createBookmarkService();
 
@@ -33,11 +36,21 @@ const errorResponseSchema = z
 	})
 	.openapi('ErrorResponse');
 
+const listBookmarksQuerySchema = z.object({
+	has_folder: z
+		.enum(['true', 'false'])
+		.default('false')
+		.transform((value) => value === 'true'),
+});
+
 const listBookmarksRoute = createRoute({
 	method: 'get',
 	path: '/',
 	tags: ['Bookmarks'],
 	summary: '북마크 목록 조회',
+	request: {
+		query: listBookmarksQuerySchema,
+	},
 	responses: {
 		200: {
 			description: '북마크 목록 조회 성공',
@@ -131,6 +144,47 @@ const updateBookmarkRoute = createRoute({
 		},
 		404: {
 			description: '북마크를 찾을 수 없음',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+	},
+});
+
+const moveBookmarkRoute = createRoute({
+	method: 'patch',
+	path: '/{id}/move',
+	tags: ['Bookmarks'],
+	summary: '북마크 이동 및 순서 변경',
+	request: {
+		params: moveBookmarkParamSchema,
+		body: {
+			required: true,
+			content: {
+				'application/json': { schema: moveBookmarkSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: '북마크 이동 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: bookmarkResponseSchema,
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+		400: {
+			description: '잘못된 요청',
+			content: {
+				'application/json': { schema: errorResponseSchema },
+			},
+		},
+		404: {
+			description: '북마크 또는 이동할 폴더를 찾을 수 없음',
 			content: {
 				'application/json': { schema: errorResponseSchema },
 			},
@@ -245,7 +299,7 @@ const favoriteBookmarkRoute = createRoute({
 	},
 });
 
-const bookmarkRoutes = new OpenAPIHono({
+const bookmarksRoutes = new OpenAPIHono({
 	defaultHook: (result, c) => {
 		if (!result.success) {
 			const message =
@@ -255,7 +309,8 @@ const bookmarkRoutes = new OpenAPIHono({
 	},
 })
 	.openapi(listBookmarksRoute, async (c) => {
-		const bookmarks = await bookmarkService.findBookmarks();
+		const query = c.req.valid('query');
+		const bookmarks = await bookmarkService.findBookmarks(query.has_folder);
 		return response.success(c, bookmarks);
 	})
 	.openapi(createBookmarkRoute, async (c) => {
@@ -278,6 +333,24 @@ const bookmarkRoutes = new OpenAPIHono({
 		const bookmark = await bookmarkService.updateBookmark(id, input);
 
 		return response.success(c, bookmark);
+	})
+	.openapi(moveBookmarkRoute, async (c) => {
+		const { id } = c.req.valid('param');
+		const input = c.req.valid('json');
+
+		try {
+			const bookmark = await bookmarkService.moveBookmark(id, input);
+			return response.success(c, bookmark);
+		} catch (error: unknown) {
+			if (
+				error instanceof BookmarkNotFoundError ||
+				error instanceof BookmarkTargetFolderNotFoundError
+			) {
+				return response.notFound(c, error.message);
+			}
+
+			throw error;
+		}
 	})
 	.openapi(deleteBookmarkRoute, async (c) => {
 		const { id } = c.req.valid('param');
@@ -316,4 +389,4 @@ const bookmarkRoutes = new OpenAPIHono({
 		}
 	});
 
-export { bookmarkRoutes };
+export { bookmarksRoutes };

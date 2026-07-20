@@ -29,6 +29,41 @@
 			"when": 1784183916137,
 			"tag": "0003_unknown_masked_marvel",
 			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1784512009669,
+			"tag": "0004_loving_ben_urich",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "6",
+			"when": 1784512506431,
+			"tag": "0005_ancient_snowbird",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "6",
+			"when": 1784516668577,
+			"tag": "0006_funny_darkhawk",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "6",
+			"when": 1784520996754,
+			"tag": "0007_misty_bushwacker",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1784526103487,
+			"tag": "0008_hard_sinister_six",
+			"breakpoints": true
 		}
 	]
 }

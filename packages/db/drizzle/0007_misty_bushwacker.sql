@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `parent_folder_id` integer;

@@ -1,17 +1,18 @@
 import type {
 	CreateBookmarkInput,
+	MoveBookmarkInput,
 	PreviewBookmark,
 	UpdateBookmarkInput,
 } from '@shelf/shared';
 import { isUniqueConstraintError, parseMetadata } from '@/common/utils';
-import { createBookmarkRepository } from '@/features/bookmark/bookmark.repository';
+import { createBookmarkRepository } from '@/features/bookmarks/bookmarks.repository';
 
 const bookmarkRepository = createBookmarkRepository();
 
 export function createBookmarkService() {
 	return {
-		findBookmarks: async () => {
-			return bookmarkRepository.findAll();
+		findBookmarks: async (hasFolder: boolean) => {
+			return bookmarkRepository.findAll(hasFolder);
 		},
 
 		createBookmark: async (input: CreateBookmarkInput) => {
@@ -70,6 +71,30 @@ export function createBookmarkService() {
 
 			return result.isFavorite;
 		},
+
+		moveBookmark: async (id: number, input: MoveBookmarkInput) => {
+			const result = await bookmarkRepository.move(id, input);
+
+			if (result.status === 'bookmark_not_found') {
+				throw new BookmarkNotFoundError();
+			}
+
+			if (result.status === 'folder_not_found') {
+				throw new BookmarkTargetFolderNotFoundError();
+			}
+
+			return result.bookmark;
+		},
+
+		restoreBookmark: async (id: number) => {
+			const result = await bookmarkRepository.restoreDeleted(id);
+
+			if (result.status === 'bookmark_not_found') {
+				throw new BookmarkNotFoundError();
+			}
+
+			return result.bookmark;
+		},
 	};
 }
 
@@ -84,5 +109,12 @@ export class BookmarkNotFoundError extends Error {
 	constructor() {
 		super('북마크를 찾을 수 없습니다.');
 		this.name = 'BookmarkNotFoundError';
+	}
+}
+
+export class BookmarkTargetFolderNotFoundError extends Error {
+	constructor() {
+		super('이동할 폴더를 찾을 수 없습니다.');
+		this.name = 'BookmarkTargetFolderNotFoundError';
 	}
 }

@@ -1,6 +1,10 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { bookmarkRoutes } from '@/features/bookmark/bookmark.routes';
+import { bookmarksRoutes } from '@/features/bookmarks/bookmarks.routes';
+import { foldersRoute } from '@/features/folders/folders.route';
+import { trashRoutes } from '@/features/trash/trash.routes';
 
 export const appRoutes = new OpenAPIHono()
 	.basePath('/api')
-	.route('/bookmarks', bookmarkRoutes);
+	.route('/bookmarks', bookmarksRoutes)
+	.route('/folders', foldersRoute)
+	.route('/trash', trashRoutes);

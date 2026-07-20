@@ -13,7 +13,7 @@ CREATE TABLE `__new_bookmarks` (
 	`deleted_at` integer
 );
 --> statement-breakpoint
-INSERT INTO `__new_bookmarks`("id", "title", "url", "description", "site_name", "favicon_url", "image_url", "is_favorite", "created_at", "updated_at", "deleted_at") SELECT "id", "title", "url", "description", "site_name", "favicon_url", "image_url", "is_favorite", "created_at", "updated_at", "deleted_at" FROM `bookmarks`;--> statement-breakpoint
+INSERT INTO `__new_bookmarks`("id", "title", "url", "description", "site_name", "favicon_url", "image_url", "is_favorite", "created_at", "updated_at", "deleted_at") SELECT "id", "title", COALESCE("url", 'about:blank#bookmark-' || "id"), "description", NULL, "favicon_url", NULL, "is_favorite", "created_at", "updated_at", "deleted_at" FROM `bookmarks`;--> statement-breakpoint
 DROP TABLE `bookmarks`;--> statement-breakpoint
 ALTER TABLE `__new_bookmarks` RENAME TO `bookmarks`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint
