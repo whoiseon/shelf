@@ -17,6 +17,11 @@
 			"!!**/routeTree.gen.ts"
 		]
 	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",

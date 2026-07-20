@@ -1,1 +1,120 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+	font-family: "Pretendard Variable";
+	font-weight: 45 920;
+	font-style: normal;
+	font-display: swap;
+	src: url("../../assets/fonts/PretendardVariable.woff2")
+		format("woff2-variations");
+}
+
+@theme {
+	/* neutral 컬러 보간 — 인접 단계의 명도 평균값. */
+	--color-neutral-150: oklch(94.6% 0 none);
+	--color-neutral-250: oklch(89.6% 0 none);
+	--color-neutral-350: oklch(78.9% 0 none);
+	--color-neutral-450: oklch(63.2% 0 none);
+	--color-neutral-550: oklch(49.75% 0 none);
+	--color-neutral-650: oklch(40.5% 0 none);
+	--color-neutral-750: oklch(32% 0 none);
+	--color-neutral-850: oklch(23.7% 0 none);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+
+	--color-card: var(--card);
+	--color-card-accent: var(--card-accent);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-sidebar: var(--sidebar);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+
+	--font-sans: "Pretendard Variable", sans-serif, system-ui;
+}
+
+:root {
+	--background: var(--color-neutral-50);
+	--foreground: var(--color-neutral-900);
+
+	--primary: var(--color-blue-500);
+	--primary-foreground: oklch(0.985 0 0);
+
+	--card: var(--color-white);
+	--card-accent: var(--color-neutral-100);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: var(--color-white);
+	--popover-foreground: oklch(0.145 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: var(--color-neutral-100);
+	--muted-foreground: var(--color-neutral-400);
+	--accent: var(--color-neutral-100);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.922 0 0);
+	--input: var(--color-neutral-300);
+	--ring: oklch(0.708 0 0);
+	--radius: 0.625rem;
+
+	--sidebar: var(--color-neutral-100);
+}
+
+.dark {
+	--background: var(--color-neutral-900);
+	--foreground: var(--color-neutral-100);
+
+	--primary: var(--color-blue-400);
+	--primary-foreground: oklch(0.205 0 0);
+
+	--card: var(--color-neutral-800);
+	--card-accent: var(--color-neutral-850);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: var(--color-neutral-800);
+	--popover-foreground: oklch(0.985 0 0);
+	--secondary: var(--color-neutral-700);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: var(--color-neutral-850);
+	--muted-foreground: var(--color-neutral-500);
+	--accent: var(--color-neutral-850);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 10%);
+	--input: var(--color-neutral-700);
+	--ring: oklch(0.556 0 0);
+	--sidebar: var(--color-neutral-850);
+}
+
+.app-drag-region {
+	app-region: drag;
+}
+
+.app-no-drag-region {
+	app-region: no-drag;
+}
