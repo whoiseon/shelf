@@ -3,7 +3,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tsx watch src/index.ts",
-		"build": "tsc && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js",
+		"build": "tsc && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --alias:@shelf/db=../../packages/db/src/index.ts --alias:@shelf/shared=../../packages/shared/src/index.ts --outfile=dist/index.js",
 		"start": "node dist/index.js"
 	},
 	"dependencies": {
@@ -12,10 +12,12 @@
 		"@hono/zod-openapi": "^1.5.1",
 		"@shelf/db": "workspace:*",
 		"@shelf/shared": "workspace:*",
+		"better-sqlite3": "^12.11.1",
 		"cheerio": "^1.2.0",
 		"dotenv": "^17.4.2",
 		"drizzle-orm": "^0.45.2",
-		"hono": "^4.12.30"
+		"hono": "^4.12.30",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@hono/zod-validator": "^0.9.0",

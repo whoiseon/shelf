@@ -1,0 +1,15 @@
+.git
+.github
+.husky
+.turbo
+.pnpm-store
+node_modules
+**/node_modules
+**/dist
+**/*.log
+**/.DS_Store
+.env
+.env.*
+data
+**/data
+apps/desktop

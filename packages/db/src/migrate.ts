@@ -10,7 +10,8 @@ const packageDirectory = path.resolve(currentDirectory, '..');
 const databasePath =
 	process.env.DATABASE_URL ?? path.join(packageDirectory, 'data', 'shelf.db');
 
-const migrationsFolder = path.join(packageDirectory, 'drizzle');
+const migrationsFolder =
+	process.env.MIGRATIONS_FOLDER ?? path.join(packageDirectory, 'drizzle');
 
 const sqlite = new Database(databasePath);
 const db = drizzle(sqlite);
