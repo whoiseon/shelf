@@ -16,6 +16,7 @@ function createWindow(): void {
 			sandbox: false,
 		},
 		titleBarStyle: 'hidden',
+		trafficLightPosition: { x: 20, y: 20 },
 	});
 
 	mainWindow.on('ready-to-show', () => {

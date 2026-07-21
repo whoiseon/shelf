@@ -26,20 +26,23 @@ function RootLayout() {
 			>
 				<ResizablePanel
 					id="sidebar"
+					className="relative z-10 overflow-visible!"
 					defaultSize="20%"
 					minSize="15%"
 					maxSize="40%"
 				>
 					<Sidebar />
 				</ResizablePanel>
-				<ResizableHandle withHandle />
-				<ResizablePanel id="content" defaultSize="80%">
-					<main className="flex-1">
+				<ResizableHandle className="-translate-x-2 bg-transparent" />
+				<ResizablePanel id="content" className="relative" defaultSize="80%">
+					<div className="absolute inset-x-0 top-0 h-12 app-drag-region" />
+					<main className="relative flex-1">
 						<Outlet />
 					</main>
 				</ResizablePanel>
 			</ResizablePanelGroup>
 			<TanStackRouterDevtools />
+			{/*<div className="absolute top-0 w-full bg-transparent h-12 app-drag-region" />*/}
 		</Providers>
 	);
 }
