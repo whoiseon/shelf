@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { BookmarkPreviewImage } from '@renderer/components/bookmark/bookmark-preview-image';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { Textarea } from '@renderer/components/ui/textarea';
@@ -39,19 +40,15 @@ export function BookmarkForm({
 	});
 
 	const serverError = error ? extractError(error).message : null;
-	const hasMedia = Boolean(defaultValues.imageUrl || defaultValues.faviconUrl);
-
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
-			<div className={hasMedia ? 'grid gap-6 sm:grid-cols-2' : 'grid'}>
-				{hasMedia ? (
-					<BookmarkMediaPreview
-						title={defaultValues.title}
-						siteName={defaultValues.siteName}
-						imageUrl={defaultValues.imageUrl}
-						faviconUrl={defaultValues.faviconUrl}
-					/>
-				) : null}
+			<div className="grid gap-6 sm:grid-cols-2">
+				<BookmarkMediaPreview
+					title={defaultValues.title}
+					siteName={defaultValues.siteName}
+					imageUrl={defaultValues.imageUrl}
+					faviconUrl={defaultValues.faviconUrl}
+				/>
 				<div className="grid content-start gap-4">
 					<FormField
 						id="bookmark-title"
@@ -163,22 +160,15 @@ function BookmarkMediaPreview({
 	imageUrl: string | null;
 	faviconUrl: string | null;
 }) {
-	const [isImageVisible, setIsImageVisible] = useState(Boolean(imageUrl));
 	const [isFaviconVisible, setIsFaviconVisible] = useState(Boolean(faviconUrl));
-
-	if (!isImageVisible && !isFaviconVisible) return null;
 
 	return (
 		<div className="self-start overflow-hidden rounded-lg border border-border-accent bg-muted/30">
-			{imageUrl && isImageVisible ? (
-				<img
-					src={imageUrl}
-					alt={`${title} 사이트 미리보기`}
-					referrerPolicy="no-referrer"
-					onError={() => setIsImageVisible(false)}
-					className="aspect-4/3 w-full bg-muted object-cover"
-				/>
-			) : null}
+			<BookmarkPreviewImage
+				imageUrl={imageUrl}
+				alt={`${title} 사이트 미리보기`}
+				className="aspect-4/3 w-full"
+			/>
 			{isFaviconVisible ? (
 				<div className="flex items-center gap-2 border-t border-border-accent px-3 py-2.5">
 					<img

@@ -1,5 +1,5 @@
 import { bookmarks, folders } from '@shelf/db';
-import { desc, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import { db } from '@/common/database';
 
 export function createTrashRepository() {
@@ -68,6 +68,34 @@ export function createTrashRepository() {
 				folders: rootFolders,
 				bookmarks: standaloneBookmarks,
 			};
+		},
+		hardDeleteFolder: async (id: number) => {
+			return db
+				.delete(folders)
+				.where(and(eq(folders.id, id), isNotNull(folders.deletedAt)))
+				.returning()
+				.get();
+		},
+		hardDeleteBookmark: async (id: number) => {
+			return db
+				.delete(bookmarks)
+				.where(and(eq(bookmarks.id, id), isNotNull(bookmarks.deletedAt)))
+				.returning()
+				.get();
+		},
+		empty: async () => {
+			return db.transaction((tx) => {
+				const deletedBookmarks = tx
+					.delete(bookmarks)
+					.where(isNotNull(bookmarks.deletedAt))
+					.run().changes;
+				const deletedFolders = tx
+					.delete(folders)
+					.where(isNotNull(folders.deletedAt))
+					.run().changes;
+
+				return { deletedFolders, deletedBookmarks };
+			});
 		},
 	} as const;
 }

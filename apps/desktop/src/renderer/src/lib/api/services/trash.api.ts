@@ -13,6 +13,8 @@ export type RestoreTrashItemInput = {
 	id: number;
 };
 
+export type DeleteTrashItemInput = RestoreTrashItemInput;
+
 export const trashApi = {
 	getTrash: async (): Promise<ApiResponse<Trash>> => {
 		return api.get<ApiResponse<Trash>>('/api/trash');
@@ -20,6 +22,13 @@ export const trashApi = {
 	restoreItem: async ({ type, id }: RestoreTrashItemInput) => {
 		const resource = type === 'folder' ? 'folders' : 'bookmarks';
 		return api.patch(`/api/trash/${resource}/${id}/restore`);
+	},
+	deleteItem: async ({ type, id }: DeleteTrashItemInput) => {
+		const resource = type === 'folder' ? 'folders' : 'bookmarks';
+		return api.delete(`/api/trash/${resource}/${id}`);
+	},
+	emptyTrash: async () => {
+		return api.delete('/api/trash');
 	},
 };
 

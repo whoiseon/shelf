@@ -17,6 +17,7 @@ const errorResponseSchema = z.object({
 	payload: z.null(),
 	message: z.string(),
 });
+const hardDeleteResponseSchema = z.object({ isDeleted: z.literal(true) });
 
 const listTrashRoute = createRoute({
 	method: 'get',
@@ -91,6 +92,79 @@ const restoreBookmarkRoute = createRoute({
 	},
 });
 
+const hardDeleteFolderRoute = createRoute({
+	method: 'delete',
+	path: '/folders/{id}',
+	tags: ['Trash'],
+	summary: '휴지통 폴더 트리 영구 삭제',
+	request: { params: trashParamSchema },
+	responses: {
+		200: {
+			description: '폴더 트리 영구 삭제 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: hardDeleteResponseSchema,
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+		404: {
+			description: '휴지통 폴더를 찾을 수 없음',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+	},
+});
+
+const hardDeleteBookmarkRoute = createRoute({
+	method: 'delete',
+	path: '/bookmarks/{id}',
+	tags: ['Trash'],
+	summary: '휴지통 북마크 영구 삭제',
+	request: { params: trashParamSchema },
+	responses: {
+		200: {
+			description: '북마크 영구 삭제 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: hardDeleteResponseSchema,
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+		404: {
+			description: '휴지통 북마크를 찾을 수 없음',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+	},
+});
+
+const emptyTrashRoute = createRoute({
+	method: 'delete',
+	path: '/',
+	tags: ['Trash'],
+	summary: '휴지통 비우기',
+	responses: {
+		200: {
+			description: '휴지통 비우기 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: z.object({
+							deletedFolders: z.number().int().min(0),
+							deletedBookmarks: z.number().int().min(0),
+						}),
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+	},
+});
+
 const trashRoutes = new OpenAPIHono({
 	defaultHook: (result, c) => {
 		if (!result.success) {
@@ -131,6 +205,38 @@ const trashRoutes = new OpenAPIHono({
 
 			throw error;
 		}
+	})
+	.openapi(hardDeleteFolderRoute, async (c) => {
+		const { id } = c.req.valid('param');
+
+		try {
+			await trashService.hardDeleteFolder(id);
+			return response.success(c, { isDeleted: true as const });
+		} catch (error: unknown) {
+			if (error instanceof FolderNotFoundError) {
+				return response.notFound(c, error.message);
+			}
+
+			throw error;
+		}
+	})
+	.openapi(hardDeleteBookmarkRoute, async (c) => {
+		const { id } = c.req.valid('param');
+
+		try {
+			await trashService.hardDeleteBookmark(id);
+			return response.success(c, { isDeleted: true as const });
+		} catch (error: unknown) {
+			if (error instanceof BookmarkNotFoundError) {
+				return response.notFound(c, error.message);
+			}
+
+			throw error;
+		}
+	})
+	.openapi(emptyTrashRoute, async (c) => {
+		const result = await trashService.emptyTrash();
+		return response.success(c, result);
 	});
 
 export { trashRoutes };

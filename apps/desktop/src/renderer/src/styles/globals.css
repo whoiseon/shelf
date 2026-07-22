@@ -85,7 +85,7 @@
 	--ring: oklch(0.708 0 0);
 	--radius: 0.625rem;
 
-	--sidebar: var(--color-neutral-100);
+	--sidebar: var(--color-neutral-150);
 }
 
 .dark {

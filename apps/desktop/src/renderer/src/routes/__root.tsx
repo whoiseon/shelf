@@ -1,3 +1,4 @@
+import { PasteBookmarkHandler } from '@renderer/components/bookmark/paste-bookmark-handler';
 import { Providers } from '@renderer/components/providers';
 import {
 	ResizableHandle,
@@ -36,11 +37,12 @@ function RootLayout() {
 				<ResizableHandle className="-translate-x-2 bg-transparent" />
 				<ResizablePanel id="content" className="relative" defaultSize="80%">
 					<div className="absolute inset-x-0 top-0 h-12 app-drag-region" />
-					<main className="relative flex-1">
+					<main className="relative h-full">
 						<Outlet />
 					</main>
 				</ResizablePanel>
 			</ResizablePanelGroup>
+			<PasteBookmarkHandler />
 			<TanStackRouterDevtools />
 			{/*<div className="absolute top-0 w-full bg-transparent h-12 app-drag-region" />*/}
 		</Providers>

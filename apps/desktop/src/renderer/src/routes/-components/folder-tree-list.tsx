@@ -11,6 +11,7 @@ import {
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
+import { BookmarkPreviewImage } from '@renderer/components/bookmark/bookmark-preview-image';
 import { CreateFolderDialog } from '@renderer/components/dialog/create-folder-dialog';
 import { UpdateBookmarkDialog } from '@renderer/components/dialog/update-bookmark-dialog';
 import { TrashPopover } from '@renderer/components/trash/trash-popover';
@@ -40,7 +41,7 @@ import {
 } from '@renderer/lib/opened-folders';
 import { cn } from '@renderer/lib/utils';
 import type { FolderTree } from '@shelf/shared';
-import { ChevronRight, Folder, Globe2, ImageOff, Star } from 'lucide-react';
+import { ChevronRight, Folder, Globe2, Star } from 'lucide-react';
 import {
 	type KeyboardEvent,
 	useEffect,
@@ -673,9 +674,6 @@ function BookmarkItem({
 		} satisfies SortableTreeItemData,
 	});
 	const [showFavicon, setShowFavicon] = useState(Boolean(bookmark.faviconUrl));
-	const [showPreviewImage, setShowPreviewImage] = useState(
-		Boolean(bookmark.imageUrl),
-	);
 	const [isUpdateBookmarkOpen, setIsUpdateBookmarkOpen] = useState(false);
 
 	return (
@@ -756,24 +754,10 @@ function BookmarkItem({
 									className="bg-background dark:bg-sidebar text-foreground border border-border-accent p-0 overflow-hidden shadow-xl w-80"
 								>
 									<div className="flex flex-col">
-										<div className="aspect-video w-80 overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-											{showPreviewImage && bookmark.imageUrl ? (
-												<img
-													src={bookmark.imageUrl}
-													alt=""
-													draggable={false}
-													onError={() => setShowPreviewImage(false)}
-													className="size-full object-cover object-center"
-												/>
-											) : (
-												<div className="flex size-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
-													<ImageOff className="size-5" />
-													<span className="text-[11px] font-medium">
-														이미지 없음
-													</span>
-												</div>
-											)}
-										</div>
+										<BookmarkPreviewImage
+											imageUrl={bookmark.imageUrl}
+											className="aspect-video w-80"
+										/>
 										<div className="flex flex-col p-3">
 											<div className="flex items-center justify-between">
 												<div className="flex flex-col">

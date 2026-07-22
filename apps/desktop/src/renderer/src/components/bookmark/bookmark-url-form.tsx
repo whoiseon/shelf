@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@renderer/components/ui/input';
 import { useBookmarkPreview } from '@renderer/hooks/mutations/use-bookmark-preview';
 import { extractError } from '@renderer/lib/api/error';
+import { cn } from '@renderer/lib/utils';
 import { type PreviewBookmark, previewBookmarkUrlSchema } from '@shelf/shared';
 import { LoaderCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -12,11 +13,19 @@ type BookmarkUrlInput = z.input<typeof previewBookmarkUrlSchema>;
 type BookmarkUrlFormProps = {
 	onPreview: (result: { url: string; preview: PreviewBookmark }) => void;
 	className?: string;
+	inputClassName?: string;
+	errorClassName?: string;
+	loadingSpinnerClassName?: string;
+	placeholder?: string;
 };
 
 export function BookmarkUrlForm({
 	onPreview,
 	className,
+	inputClassName,
+	errorClassName,
+	loadingSpinnerClassName,
+	placeholder = 'https://example.com',
 }: BookmarkUrlFormProps) {
 	const previewBookmark = useBookmarkPreview();
 	const {
@@ -52,17 +61,30 @@ export function BookmarkUrlForm({
 					inputMode="url"
 					autoComplete="url"
 					disabled={previewBookmark.isPending}
-					placeholder="https://example.com"
+					placeholder={placeholder}
 					aria-label="북마크 URL"
 					aria-invalid={Boolean(errorMessage)}
 					aria-describedby={errorMessage ? 'bookmark-url-error' : undefined}
-					className="h-9 bg-sidebar! border-border-accent pr-9"
+					className={cn(
+						'h-9 bg-sidebar! border-border-accent pr-9',
+						inputClassName,
+					)}
 				/>
 				{previewBookmark.isPending ? (
-					<LoaderCircle className="absolute right-2.5 top-2.5 size-4 animate-spin text-muted-foreground" />
+					<LoaderCircle
+						className={cn(
+							'absolute right-2.5 top-2.5 size-4 animate-spin text-muted-foreground',
+							loadingSpinnerClassName,
+						)}
+					/>
 				) : null}
 				{errorMessage ? (
-					<div className="absolute right-2.5 top-0 h-8 flex items-center">
+					<div
+						className={cn(
+							'absolute right-2.5 top-0 h-8 flex items-center',
+							errorClassName,
+						)}
+					>
 						<p
 							id="bookmark-url-error"
 							role="alert"
