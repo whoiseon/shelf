@@ -22,6 +22,7 @@ import {
 	ContextMenuTrigger,
 } from '@renderer/components/ui/context-menu';
 import { Input } from '@renderer/components/ui/input';
+import { Skeleton } from '@renderer/components/ui/skeleton';
 import {
 	Tooltip,
 	TooltipContent,
@@ -194,7 +195,7 @@ export function FolderTreeList({ keyword = '' }: { keyword?: string }) {
 	);
 
 	if (isLoading) {
-		return <p className="px-2 py-1 text-xs text-muted-foreground">로딩 중…</p>;
+		return <FolderTreeSkeleton />;
 	}
 
 	if (isError || !bookmarkData || !folderData) {
@@ -533,6 +534,7 @@ function FolderItem({
 								type="button"
 								role="treeitem"
 								data-tree-item
+								data-search-result={keyword ? 'true' : undefined}
 								aria-level={depth + 1}
 								aria-expanded={hasChildren ? isExpanded : undefined}
 								onClick={() => setFolderOpen(!isExpanded)}
@@ -697,6 +699,7 @@ function BookmarkItem({
 											type="button"
 											role="treeitem"
 											data-tree-item
+											data-search-result={keyword ? 'true' : undefined}
 											aria-level={depth + 1}
 											disabled={!bookmark.url}
 											onKeyDown={(event) => {
@@ -848,4 +851,25 @@ function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
 	}
 
 	return parts;
+}
+
+function FolderTreeSkeleton() {
+	return (
+		<div
+			className="flex flex-col gap-2 px-2 py-1"
+			role="status"
+			aria-label="폴더 목록 로딩 중"
+		>
+			{[72, 58, 82, 64, 76].map((width, index) => (
+				<div
+					key={width}
+					className="flex h-6 items-center gap-2"
+					style={{ paddingInlineStart: index % 3 === 1 ? 16 : 0 }}
+				>
+					<Skeleton className="size-3.5 shrink-0 rounded-sm" />
+					<Skeleton className="h-3" style={{ width: `${width}%` }} />
+				</div>
+			))}
+		</div>
+	);
 }

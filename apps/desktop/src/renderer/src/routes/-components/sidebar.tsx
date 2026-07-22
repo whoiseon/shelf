@@ -16,6 +16,16 @@ export function Sidebar() {
 	const [isCreateBookmarkOpen, setIsCreateBookmarkOpen] = useState(false);
 	const [searchKeyword, setSearchKeyword] = useState('');
 	const debouncedSearchKeyword = useDebounce(searchKeyword);
+	const focusSearchResult = (position: 'first' | 'last', open = false) => {
+		const results = document.querySelectorAll<HTMLButtonElement>(
+			'[data-search-result="true"]',
+		);
+		const result =
+			position === 'first' ? results[0] : results[results.length - 1];
+
+		if (open) result?.click();
+		else result?.focus();
+	};
 
 	return (
 		<div className="flex h-full flex-col bg-transparent p-2 z-10">
@@ -58,6 +68,20 @@ export function Sidebar() {
 							<Input
 								value={searchKeyword}
 								onChange={(event) => setSearchKeyword(event.target.value)}
+								onKeyDown={(event) => {
+									if (!debouncedSearchKeyword.trim()) return;
+
+									if (event.key === 'ArrowDown') {
+										event.preventDefault();
+										focusSearchResult('first');
+									} else if (event.key === 'ArrowUp') {
+										event.preventDefault();
+										focusSearchResult('last');
+									} else if (event.key === 'Enter') {
+										event.preventDefault();
+										focusSearchResult('first', true);
+									}
+								}}
 								className="pl-7"
 								placeholder="검색"
 								aria-label="폴더 및 북마크 검색"
