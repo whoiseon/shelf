@@ -6,6 +6,8 @@ import { appRoutes } from './features';
 
 const app = new OpenAPIHono();
 
+app.get('/health', (c) => c.json({ status: 'ok' as const }));
+
 app.use(
 	'/api/*',
 	cors({

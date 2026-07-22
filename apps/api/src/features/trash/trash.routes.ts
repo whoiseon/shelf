@@ -1,5 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { bookmarkSchema, folderSchema, folderTreeSchema } from '@shelf/shared';
+import {
+	bookmarkSchema,
+	folderSchema,
+	folderWithBookmarksSchema,
+} from '@shelf/shared';
 import { response } from '@/common/utils';
 import {
 	BookmarkNotFoundError,
@@ -10,6 +14,16 @@ import {
 const trashService = createTrashService();
 const folderResponseSchema = folderSchema.openapi('TrashFolder');
 const bookmarkResponseSchema = bookmarkSchema.openapi('TrashBookmark');
+const trashFolderTreeResponseSchema = folderWithBookmarksSchema
+	.extend({
+		children: z.array(
+			z.object({
+				...folderWithBookmarksSchema.shape,
+				children: z.array(z.unknown()),
+			}),
+		),
+	})
+	.openapi('TrashFolderTree');
 const trashParamSchema = z.object({
 	id: z.coerce.number().int().positive(),
 });
@@ -31,7 +45,7 @@ const listTrashRoute = createRoute({
 				'application/json': {
 					schema: z.object({
 						payload: z.object({
-							folders: z.array(folderTreeSchema),
+							folders: z.array(trashFolderTreeResponseSchema),
 							bookmarks: z.array(bookmarkResponseSchema),
 						}),
 						message: z.string().optional(),
