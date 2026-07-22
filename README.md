@@ -8,7 +8,14 @@
   A local-first desktop bookmark manager for collecting, organizing, searching, and restoring personal bookmarks.
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Available%20for-macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="Available for macOS" />
+</p>
+
 Shelf consists of an Electron desktop client and a lightweight Hono API backed by SQLite.
+
+> [!IMPORTANT]
+> Shelf is currently released and tested for macOS only. Windows and Linux builds are not officially supported yet.
 
 ## Screenshots
 
@@ -187,7 +194,7 @@ After starting the API, the generated documentation is available at:
 - Swagger UI: [http://localhost:3070/swagger](http://localhost:3070/swagger)
 - OpenAPI JSON: [http://localhost:3070/doc](http://localhost:3070/doc)
 
-## Run the Desktop Application
+## Run the Desktop Application on macOS
 
 The desktop application connects to the API at `http://localhost:3070` by default. Start the API first using either Docker method above.
 
@@ -241,7 +248,7 @@ pnpm --filter api dev
 pnpm --filter desktop dev
 ```
 
-## Build
+## Build for macOS
 
 Build every workspace package:
 
@@ -249,18 +256,13 @@ Build every workspace package:
 pnpm build
 ```
 
-Build a platform-specific desktop package:
+Build the official macOS desktop package:
 
 ```bash
-# macOS
 pnpm --filter desktop build:mac
-
-# Windows
-pnpm --filter desktop build:win
-
-# Linux
-pnpm --filter desktop build:linux
 ```
+
+Windows and Linux build configurations are retained for future support, but they are currently untested and are not part of the official Shelf release.
 
 ## Database Persistence and Reset
 
