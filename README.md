@@ -1,6 +1,24 @@
-# Shelf
+<p align="center">
+  <img src="./apps/desktop/resources/icon.png" width="144" alt="Shelf app icon" />
+</p>
 
-Shelf is a local-first desktop bookmark manager for collecting, organizing, searching, and restoring personal bookmarks. It consists of an Electron desktop client and a lightweight Hono API backed by SQLite.
+<h1 align="center">Shelf</h1>
+
+<p align="center">
+  A local-first desktop bookmark manager for collecting, organizing, searching, and restoring personal bookmarks.
+</p>
+
+Shelf consists of an Electron desktop client and a lightweight Hono API backed by SQLite.
+
+## Screenshots
+
+### Bookmark Library
+
+![Shelf bookmark library](./screenshot/screenshot-1.png)
+
+### Bookmark Preview and Creation
+
+![Shelf bookmark creation dialog](./screenshot/screenshot-2.png)
 
 ## Features
 
