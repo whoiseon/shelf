@@ -11,28 +11,58 @@ export function createTrashRepository() {
 				.where(isNotNull(folders.deletedAt))
 				.orderBy(desc(folders.deletedAt))
 				.all();
-			const foldersById = new Map(
-				deletedFolders.map((folder) => [folder.id, folder]),
-			);
-			const rootFolders = deletedFolders.filter((folder) => {
-				if (folder.parentFolderId === null) return true;
-
-				const parent = foldersById.get(folder.parentFolderId);
-				return parent?.deletedAt?.getTime() !== folder.deletedAt?.getTime();
-			});
-
 			const deletedBookmarks = db
 				.select()
 				.from(bookmarks)
 				.where(isNotNull(bookmarks.deletedAt))
 				.orderBy(desc(bookmarks.deletedAt))
 				.all();
-			const standaloneBookmarks = deletedBookmarks.filter((bookmark) => {
-				if (bookmark.folderId === null) return true;
+			type DeletedBookmark = (typeof deletedBookmarks)[number];
+			type TrashFolderNode = (typeof deletedFolders)[number] & {
+				bookmarks: DeletedBookmark[];
+				children: TrashFolderNode[];
+			};
+			const folderNodes = new Map<number, TrashFolderNode>(
+				deletedFolders.map((folder) => [
+					folder.id,
+					{ ...folder, bookmarks: [], children: [] } as TrashFolderNode,
+				]),
+			);
+			const rootFolders: TrashFolderNode[] = [];
 
-				const folder = foldersById.get(bookmark.folderId);
-				return folder?.deletedAt?.getTime() !== bookmark.deletedAt?.getTime();
-			});
+			for (const folder of folderNodes.values()) {
+				const parent =
+					folder.parentFolderId === null
+						? undefined
+						: folderNodes.get(folder.parentFolderId);
+
+				if (
+					parent &&
+					parent.deletedAt?.getTime() === folder.deletedAt?.getTime()
+				) {
+					parent.children.push(folder);
+				} else {
+					rootFolders.push(folder);
+				}
+			}
+
+			const standaloneBookmarks: DeletedBookmark[] = [];
+
+			for (const bookmark of deletedBookmarks) {
+				const folder =
+					bookmark.folderId === null
+						? undefined
+						: folderNodes.get(bookmark.folderId);
+
+				if (
+					folder &&
+					folder.deletedAt?.getTime() === bookmark.deletedAt?.getTime()
+				) {
+					folder.bookmarks.push(bookmark);
+				} else {
+					standaloneBookmarks.push(bookmark);
+				}
+			}
 
 			return {
 				folders: rootFolders,

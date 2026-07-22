@@ -1,10 +1,10 @@
-import { Sidebar } from '@renderer/components/layouts/sidebar';
 import { Providers } from '@renderer/components/providers';
 import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from '@renderer/components/ui/resizable';
+import { Sidebar } from '@renderer/routes/-components/sidebar';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useDefaultLayout } from 'react-resizable-panels';

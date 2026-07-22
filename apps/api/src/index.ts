@@ -1,12 +1,23 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { cors } from 'hono/cors';
 import { factoryServer } from '@/server';
 import { configureSwagger } from '@/swagger';
 import { appRoutes } from './features';
 
-const app = new OpenAPIHono().route('/', appRoutes);
+const app = new OpenAPIHono();
+
+app.use(
+	'/api/*',
+	cors({
+		origin: 'http://localhost:5173',
+		credentials: true,
+	}),
+);
 
 configureSwagger(app);
 
-factoryServer(app);
+const routes = app.route('/', appRoutes);
 
-export type AppType = typeof app;
+factoryServer(routes);
+
+export type AppType = typeof routes;

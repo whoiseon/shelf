@@ -17,6 +17,8 @@ export const bookmarkSchema = z.object({
 	deletedAt: z.iso.datetime().nullable(),
 });
 
+export type Bookmark = z.infer<typeof bookmarkSchema>;
+
 export const createBookmarkSchema = z.object({
 	title: z
 		.string()

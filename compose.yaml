@@ -1,0 +1,22 @@
+name: shelf
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shelf-api
+    init: true
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3070
+      DATABASE_URL: /data/shelf.db
+      MIGRATIONS_FOLDER: /app/drizzle
+    ports:
+      - "${API_PORT:-3070}:3070"
+    volumes:
+      - shelf-data:/data
+
+volumes:
+  shelf-data:

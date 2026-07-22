@@ -48,4 +48,7 @@ USER node
 
 EXPOSE 3070
 
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+	CMD node -e "fetch('http://127.0.0.1:3070/doc').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"
+
 CMD ["sh", "-c", "node migrate.js && exec node dist/index.js"]

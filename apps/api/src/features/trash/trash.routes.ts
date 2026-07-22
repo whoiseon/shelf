@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { bookmarkSchema, folderSchema } from '@shelf/shared';
+import { bookmarkSchema, folderSchema, folderTreeSchema } from '@shelf/shared';
 import { response } from '@/common/utils';
 import {
 	BookmarkNotFoundError,
@@ -30,7 +30,7 @@ const listTrashRoute = createRoute({
 				'application/json': {
 					schema: z.object({
 						payload: z.object({
-							folders: z.array(folderResponseSchema),
+							folders: z.array(folderTreeSchema),
 							bookmarks: z.array(bookmarkResponseSchema),
 						}),
 						message: z.string().optional(),
