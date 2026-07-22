@@ -19,6 +19,7 @@ export const bookmarks = sqliteTable(
 		})
 			.notNull()
 			.default(false),
+		favoritePosition: integer('favorite_position'),
 
 		folderId: integer('folder_id').references(() => folders.id, {
 			onDelete: 'cascade',

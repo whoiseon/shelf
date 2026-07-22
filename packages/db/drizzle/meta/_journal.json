@@ -64,6 +64,13 @@
 			"when": 1784526103487,
 			"tag": "0008_hard_sinister_six",
 			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "6",
+			"when": 1784686047853,
+			"tag": "0009_organic_puppet_master",
+			"breakpoints": true
 		}
 	]
 }

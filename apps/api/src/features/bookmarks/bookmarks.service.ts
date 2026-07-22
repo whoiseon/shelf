@@ -2,6 +2,7 @@ import type {
 	CreateBookmarkInput,
 	MoveBookmarkInput,
 	PreviewBookmark,
+	ReorderFavoriteBookmarksInput,
 	UpdateBookmarkInput,
 } from '@shelf/shared';
 import { isUniqueConstraintError, parseMetadata } from '@/common/utils';
@@ -70,6 +71,10 @@ export function createBookmarkService() {
 			}
 
 			return result.isFavorite;
+		},
+
+		reorderFavorites: async (input: ReorderFavoriteBookmarksInput) => {
+			return bookmarkRepository.reorderFavorites(input);
 		},
 
 		moveBookmark: async (id: number, input: MoveBookmarkInput) => {

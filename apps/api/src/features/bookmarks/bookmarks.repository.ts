@@ -1,5 +1,9 @@
 import { type BookmarkInsert, bookmarks, folders } from '@shelf/db';
-import type { MoveBookmarkInput, UpdateBookmarkInput } from '@shelf/shared';
+import type {
+	MoveBookmarkInput,
+	ReorderFavoriteBookmarksInput,
+	UpdateBookmarkInput,
+} from '@shelf/shared';
 import {
 	and,
 	desc,
@@ -145,17 +149,62 @@ export function createBookmarkRepository() {
 			});
 		},
 		toggleFavorite: async (id: number) => {
-			return db
-				.update(bookmarks)
-				.set({
-					isFavorite: sql`NOT ${bookmarks.isFavorite}`,
-					updatedAt: new Date(),
-				})
-				.where(and(eq(bookmarks.id, id), isNull(bookmarks.deletedAt)))
-				.returning({
-					isFavorite: bookmarks.isFavorite,
-				})
-				.get();
+			return db.transaction((tx) => {
+				const bookmark = tx
+					.select()
+					.from(bookmarks)
+					.where(and(eq(bookmarks.id, id), isNull(bookmarks.deletedAt)))
+					.get();
+
+				if (!bookmark) return undefined;
+
+				const isFavorite = !bookmark.isFavorite;
+				const positionRow = isFavorite
+					? tx
+							.select({ maxPosition: max(bookmarks.favoritePosition) })
+							.from(bookmarks)
+							.where(
+								and(
+									eq(bookmarks.isFavorite, true),
+									isNull(bookmarks.deletedAt),
+								),
+							)
+							.get()
+					: undefined;
+
+				return tx
+					.update(bookmarks)
+					.set({
+						isFavorite,
+						favoritePosition: isFavorite
+							? (positionRow?.maxPosition ?? -1) + 1
+							: null,
+						updatedAt: new Date(),
+					})
+					.where(eq(bookmarks.id, id))
+					.returning({ isFavorite: bookmarks.isFavorite })
+					.get();
+			});
+		},
+		reorderFavorites: async ({
+			bookmarkIds,
+		}: ReorderFavoriteBookmarksInput) => {
+			return db.transaction((tx) => {
+				for (const [favoritePosition, id] of bookmarkIds.entries()) {
+					tx.update(bookmarks)
+						.set({ favoritePosition, updatedAt: new Date() })
+						.where(
+							and(
+								eq(bookmarks.id, id),
+								eq(bookmarks.isFavorite, true),
+								isNull(bookmarks.deletedAt),
+							),
+						)
+						.run();
+				}
+
+				return { bookmarkIds };
+			});
 		},
 		move: async (id: number, input: MoveBookmarkInput) => {
 			return db.transaction((tx) => {

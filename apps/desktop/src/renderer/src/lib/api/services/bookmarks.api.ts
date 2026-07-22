@@ -5,6 +5,7 @@ import type {
 	CreateBookmarkInput,
 	MoveBookmarkInput,
 	PreviewBookmark,
+	ReorderFavoriteBookmarksInput,
 	UpdateBookmarkInput,
 } from '@shelf/shared';
 
@@ -39,6 +40,14 @@ export const bookmarksApi = {
 	}): Promise<ApiResponse<Bookmark>> => {
 		return api.patch<ApiResponse<Bookmark>>(
 			`/api/bookmarks/${bookmarkId}`,
+			input,
+		);
+	},
+	reorderFavorites: async (
+		input: ReorderFavoriteBookmarksInput,
+	): Promise<ApiResponse<{ bookmarkIds: number[] }>> => {
+		return api.patch<ApiResponse<{ bookmarkIds: number[] }>>(
+			'/api/bookmarks/favorites/reorder',
 			input,
 		);
 	},

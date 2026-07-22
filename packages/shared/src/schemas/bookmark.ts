@@ -31,6 +31,7 @@ export const bookmarkSchema = z.object({
 	faviconUrl: z.string().nullable(),
 	imageUrl: z.string().nullable(),
 	isFavorite: z.boolean().default(false),
+	favoritePosition: z.number().int().min(0).nullable(),
 	createdAt: z.iso.datetime(),
 	updatedAt: z.iso.datetime(),
 	deletedAt: z.iso.datetime().nullable(),
@@ -89,6 +90,14 @@ export type PreviewBookmark = z.infer<typeof previewBookmarkSchema>;
 export const favoriteBookmarkParamSchema = z.object({
 	id: positiveIntId,
 });
+
+export const reorderFavoriteBookmarksSchema = z.object({
+	bookmarkIds: z.array(positiveIntId).max(1000),
+});
+
+export type ReorderFavoriteBookmarksInput = z.infer<
+	typeof reorderFavoriteBookmarksSchema
+>;
 
 export const moveBookmarkParamSchema = z.object({
 	id: positiveIntId,

@@ -8,6 +8,7 @@ import {
 	moveBookmarkSchema,
 	previewBookmarkSchema,
 	previewBookmarkUrlSchema,
+	reorderFavoriteBookmarksSchema,
 	updateBookmarkParamSchema,
 	updateBookmarkSchema,
 } from '@shelf/shared';
@@ -299,6 +300,34 @@ const favoriteBookmarkRoute = createRoute({
 	},
 });
 
+const reorderFavoriteBookmarksRoute = createRoute({
+	method: 'patch',
+	path: '/favorites/reorder',
+	tags: ['Bookmarks'],
+	summary: '즐겨찾기 북마크 순서 변경',
+	request: {
+		body: {
+			required: true,
+			content: {
+				'application/json': { schema: reorderFavoriteBookmarksSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: '즐겨찾기 순서 변경 성공',
+			content: {
+				'application/json': {
+					schema: z.object({
+						payload: z.object({ bookmarkIds: z.array(z.number().int()) }),
+						message: z.string().optional(),
+					}),
+				},
+			},
+		},
+	},
+});
+
 const bookmarksRoutes = new OpenAPIHono({
 	defaultHook: (result, c) => {
 		if (!result.success) {
@@ -387,6 +416,11 @@ const bookmarksRoutes = new OpenAPIHono({
 
 			throw error;
 		}
+	})
+	.openapi(reorderFavoriteBookmarksRoute, async (c) => {
+		const input = c.req.valid('json');
+		const result = await bookmarkService.reorderFavorites(input);
+		return response.success(c, result);
 	});
 
 export { bookmarksRoutes };
