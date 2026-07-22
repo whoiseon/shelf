@@ -1,201 +1,177 @@
 # Shelf
 
-Shelf is a local-first desktop application for organizing, searching, and managing personal bookmarks. The repository is a pnpm monorepo containing an Electron desktop client, a Hono API, shared validation contracts, and a Drizzle/SQLite data layer.
+Shelf is a local-first desktop bookmark manager for collecting, organizing, searching, and restoring personal bookmarks. It consists of an Electron desktop client and a lightweight Hono API backed by SQLite.
+
+## Features
+
+- Create bookmarks from a URL with automatic title, description, site image, and favicon previews
+- Normalize URLs without a protocol, such as `example.com`, before validation and preview
+- Paste a copied URL anywhere in the application to open the bookmark creation flow
+- Choose a destination folder while creating a bookmark
+- Create nested folders and organize folders and bookmarks with drag and drop
+- Search folders and bookmarks locally with highlighted matches
+- Navigate search results with the arrow keys and open the first result with Enter
+- Mark bookmarks as favorites and display up to 12 on the main screen
+- Reorder favorite cards with drag and drop and persist their positions
+- Edit bookmark metadata, including image and favicon URLs
+- Soft-delete folders and bookmarks to a trash area
+- Inspect deleted folder trees, restore items, permanently delete individual items, or empty the trash
+- Confirm destructive actions before permanent deletion
+- Light and dark themes
 
 ## Architecture
 
 ```text
-Electron desktop application
-        │
-        │ HTTP
-        ▼
-Hono API container (:3070)
-        │
-        ▼
-Drizzle ORM + SQLite
-        │
-        ▼
-Docker volume (/data/shelf.db)
+Electron + React desktop application
+                 |
+                 | HTTP
+                 v
+           Hono API (:3070)
+                 |
+                 v
+        Drizzle ORM + SQLite
+                 |
+                 v
+       Persistent Docker volume
 ```
 
-The Electron application is built as a native desktop package and does not run in Docker. Docker is used only for the backend API and its local SQLite database.
+The Electron application is built and run natively. Docker is used for the API and its SQLite database only.
 
-## Repository structure
+## Tech Stack
+
+### Desktop
+
+- Electron
+- React 19
+- TypeScript
+- Vite and electron-vite
+- Tailwind CSS
+- shadcn/ui
+- TanStack Query and TanStack Router
+- React Hook Form and Zod
+
+### API and Database
+
+- Hono
+- OpenAPI
+- SQLite
+- Drizzle ORM and Drizzle Kit
+- Zod
+
+### Tooling and Infrastructure
+
+- pnpm workspaces
+- Turborepo
+- Docker and Docker Compose
+- Biome
+
+## Repository Structure
 
 ```text
 shelf/
 ├── apps/
-│   ├── api/
-│   │   └── src/
-│   │       ├── common/
-│   │       │   ├── database/
-│   │       │   ├── schema/
-│   │       │   └── utils/
-│   │       ├── features/
-│   │       │   ├── bookmarks/
-│   │       │   ├── folders/
-│   │       │   └── trash/
-│   │       ├── index.ts
-│   │       ├── server.ts
-│   │       └── swagger.ts
-│   └── desktop/
-│       ├── src/
-│       ├── resources/
-│       └── electron-builder.yml
+│   ├── api/                  # Hono API
+│   └── desktop/              # Electron and React application
 ├── packages/
-│   ├── db/
-│   │   ├── drizzle/
-│   │   └── src/
-│   │       ├── schemas/
-│   │       ├── client.ts
-│   │       └── migrate.ts
-│   └── shared/
-│       └── src/
-│           ├── response/
-│           └── schemas/
+│   ├── db/                   # Drizzle schema, migrations, and SQLite client
+│   └── shared/               # Shared Zod schemas and API types
+├── compose.yaml
 ├── Dockerfile
-├── pnpm-workspace.yaml
-└── package.json
+├── package.json
+└── pnpm-workspace.yaml
 ```
 
-### Workspace responsibilities
+## Prerequisites
 
-| Path | Responsibility |
-| --- | --- |
-| `apps/api` | Hono HTTP API, request handling, application services, repositories, and OpenAPI documentation. |
-| `apps/desktop` | Electron and React desktop client. It is packaged as a native application rather than a Docker image. |
-| `packages/db` | SQLite connection, Drizzle table definitions, relations, generated migrations, and migration runner. |
-| `packages/shared` | Shared Zod schemas, API contracts, parameter validation, and reusable response types. |
+- Node.js 18 or later
+- pnpm 9
+- Docker Desktop or Docker Engine for containerized API usage
 
-## API structure
+## Run the API with Docker Compose
 
-The API is organized by feature. Each feature generally has three layers:
+Docker Compose builds the API image, starts the container, creates the persistent SQLite volume, and applies database migrations automatically.
 
-```text
-route → service → repository → database
+From the repository root, run:
+
+```bash
+docker compose up -d --build
 ```
 
-| Layer | Responsibility |
-| --- | --- |
-| Route | Declares HTTP methods, paths, Zod validation, response schemas, Swagger metadata, and HTTP error mapping. |
-| Service | Contains application rules and translates repository results into domain-level outcomes. |
-| Repository | Executes Drizzle queries and owns database transactions, position updates, tree operations, and soft deletion. |
+The API is available at `http://localhost:3070`.
 
-Current API features:
+To use a different host port:
 
-- `bookmarks`: bookmark creation, editing, ordering, folder movement, favorites, metadata preview, and soft deletion.
-- `folders`: hierarchical folders, sibling ordering, tree movement, recursive soft deletion, and nested bookmark loading.
-- `trash`: combined trash listing and restoration of deleted folder trees or individual bookmarks.
-
-All API routes use the `/api` prefix:
-
-```text
-/api/bookmarks
-/api/folders
-/api/trash
+```bash
+API_PORT=4070 docker compose up -d --build
 ```
 
-## Run the backend with Docker
+Useful Compose commands:
 
-### Prerequisites
+```bash
+# View API logs
+docker compose logs -f api
 
-- Docker Desktop or Docker Engine
-- Docker BuildKit (enabled by default in current Docker versions)
+# Stop and remove the container while preserving the database
+docker compose down
+
+# Stop the stack and permanently remove the SQLite volume
+docker compose down -v
+```
+
+> `docker compose down -v` permanently deletes all stored Shelf data.
+
+## Build and Run with Docker
+
+Use this method when you want to manage the image, container, and volume directly without Docker Compose.
 
 ### 1. Build the image
-
-Run the command from the repository root:
 
 ```bash
 docker build -t shelf-api:latest .
 ```
 
-You can verify the image with:
-
-```bash
-docker images shelf-api
-```
-
-### 2. Run the API container
+### 2. Run the container
 
 ```bash
 docker run -d \
   --name shelf-api \
+  --restart unless-stopped \
   -p 3070:3070 \
   -v shelf-data:/data \
   shelf-api:latest
 ```
 
-The named volume keeps the SQLite database after the container is stopped, removed, or replaced.
+The named `shelf-data` volume preserves the SQLite database when the container is replaced. Database migrations run automatically whenever the container starts.
 
-The container uses these defaults:
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `PORT` | `3070` | HTTP port inside the container. |
-| `DATABASE_URL` | `/data/shelf.db` | SQLite database file location. |
-| `MIGRATIONS_FOLDER` | `/app/drizzle` | Drizzle migration directory inside the image. |
-
-Database migrations run automatically before the API server starts.
-
-### 3. Verify the API
+Container management commands:
 
 ```bash
-curl http://localhost:3070/doc
+# View logs
+docker logs -f shelf-api
+
+# Stop the container
+docker stop shelf-api
+
+# Start it again
+docker start shelf-api
+
+# Remove the container while preserving its database volume
+docker rm -f shelf-api
+
+# Permanently remove the stored database
+docker volume rm shelf-data
 ```
 
-Available documentation:
+## API Documentation
+
+After starting the API, the generated documentation is available at:
 
 - Swagger UI: [http://localhost:3070/swagger](http://localhost:3070/swagger)
 - OpenAPI JSON: [http://localhost:3070/doc](http://localhost:3070/doc)
 
-### Container management
+## Run the Desktop Application
 
-View logs:
-
-```bash
-docker logs -f shelf-api
-```
-
-Stop the container:
-
-```bash
-docker stop shelf-api
-```
-
-Start the existing container again:
-
-```bash
-docker start shelf-api
-```
-
-Remove the container while preserving the database volume:
-
-```bash
-docker rm -f shelf-api
-```
-
-Remove the persisted SQLite volume only when its data is no longer needed:
-
-```bash
-docker volume rm shelf-data
-```
-
-## Rebuild after API changes
-
-```bash
-docker rm -f shelf-api
-docker build -t shelf-api:latest .
-docker run -d \
-  --name shelf-api \
-  -p 3070:3070 \
-  -v shelf-data:/data \
-  shelf-api:latest
-```
-
-The existing `shelf-data` volume is reused, and pending migrations are applied when the new container starts.
-
-## Local development
+The desktop application connects to the API at `http://localhost:3070` by default. Start the API first using either Docker method above.
 
 Install dependencies:
 
@@ -203,40 +179,93 @@ Install dependencies:
 pnpm install
 ```
 
-Run the API in watch mode:
+Create the desktop environment file:
 
 ```bash
-DATABASE_URL=../../packages/db/data/shelf.db pnpm --filter api dev
+cp apps/desktop/.env.example apps/desktop/.env
 ```
 
-Build the API:
-
-```bash
-pnpm --filter api build
-```
-
-Run database migrations locally:
-
-```bash
-pnpm --filter @shelf/db db:migrate
-```
-
-Run the Electron desktop application in development mode:
+Run the Electron application in development mode:
 
 ```bash
 pnpm --filter desktop dev
 ```
 
-Build the Electron application sources:
+## Local Development without Docker
+
+Install dependencies and create the required environment files:
 
 ```bash
-pnpm --filter desktop build
+pnpm install
+cp apps/desktop/.env.example apps/desktop/.env
 ```
 
-Create a platform package with one of the Electron Builder scripts:
+Create `apps/api/.env` with the following values:
+
+```dotenv
+PORT=3070
+DATABASE_URL=../../packages/db/data/shelf.db
+```
+
+Apply the database migrations:
 
 ```bash
+pnpm --filter @shelf/db db:migrate
+```
+
+Run the API and desktop application in separate terminals:
+
+```bash
+pnpm --filter api dev
+```
+
+```bash
+pnpm --filter desktop dev
+```
+
+## Build
+
+Build every workspace package:
+
+```bash
+pnpm build
+```
+
+Build a platform-specific desktop package:
+
+```bash
+# macOS
 pnpm --filter desktop build:mac
+
+# Windows
 pnpm --filter desktop build:win
+
+# Linux
 pnpm --filter desktop build:linux
 ```
+
+## Database Persistence and Reset
+
+The Docker setup stores SQLite data in the `shelf-data` volume. Removing or rebuilding the API container does not remove the database.
+
+To reset a Compose-managed database:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+To reset a manually managed Docker database:
+
+```bash
+docker rm -f shelf-api
+docker volume rm shelf-data
+docker run -d \
+  --name shelf-api \
+  --restart unless-stopped \
+  -p 3070:3070 \
+  -v shelf-data:/data \
+  shelf-api:latest
+```
+
+Both reset operations permanently remove existing bookmarks and folders.
