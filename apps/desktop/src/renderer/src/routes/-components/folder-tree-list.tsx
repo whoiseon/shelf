@@ -419,7 +419,9 @@ function FolderItem({
 				childFolderCount: folder.children.length,
 				bookmarkCount: folder.bookmarks?.length ?? 0,
 			} satisfies DropTargetData,
-			disabled: active?.data.current?.itemId === folder.id,
+			disabled:
+				active?.data.current?.type === 'folder' &&
+				active.data.current.itemId === folder.id,
 		});
 	const {
 		attributes,
