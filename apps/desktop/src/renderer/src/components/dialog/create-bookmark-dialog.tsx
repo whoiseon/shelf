@@ -107,6 +107,7 @@ export function CreateBookmarkDetailsDialog({
 						defaultValues={toBookmarkInput(previewResult, folderId)}
 						isPending={bookmarkCreate.isPending}
 						error={bookmarkCreate.error}
+						showFolderField
 						onSubmit={handleCreate}
 					/>
 				) : null}

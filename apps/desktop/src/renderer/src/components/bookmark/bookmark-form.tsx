@@ -3,10 +3,13 @@ import { BookmarkPreviewImage } from '@renderer/components/bookmark/bookmark-pre
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { Textarea } from '@renderer/components/ui/textarea';
+import { useFolders } from '@renderer/hooks/queries/folders/use-folders';
 import { extractError } from '@renderer/lib/api/error';
+import { cn } from '@renderer/lib/utils';
+import type { FolderTree } from '@shelf/shared';
 import { type CreateBookmarkInput, createBookmarkSchema } from '@shelf/shared';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type UseFormRegister, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 type BookmarkFormInput = z.input<typeof createBookmarkSchema>;
@@ -18,6 +21,7 @@ type BookmarkFormProps = {
 	submitLabel?: string;
 	pendingLabel?: string;
 	showMediaUrlFields?: boolean;
+	showFolderField?: boolean;
 	onSubmit: (input: CreateBookmarkInput) => Promise<void>;
 };
 
@@ -28,6 +32,7 @@ export function BookmarkForm({
 	submitLabel = '생성',
 	pendingLabel = '생성 중...',
 	showMediaUrlFields = false,
+	showFolderField = false,
 	onSubmit,
 }: BookmarkFormProps) {
 	const {
@@ -50,6 +55,7 @@ export function BookmarkForm({
 					faviconUrl={defaultValues.faviconUrl}
 				/>
 				<div className="grid content-start gap-4">
+					{showFolderField ? <FolderField register={register} /> : null}
 					<FormField
 						id="bookmark-title"
 						label="제목"
@@ -147,6 +153,48 @@ export function BookmarkForm({
 			</div>
 		</form>
 	);
+}
+
+function FolderField({
+	register,
+}: {
+	register: UseFormRegister<BookmarkFormInput>;
+}) {
+	const folders = useFolders();
+	const options = folders.data ? flattenFolders(folders.data.payload) : [];
+
+	return (
+		<FormField id="bookmark-folder" label="저장 위치">
+			<select
+				{...register('folderId', {
+					setValueAs: (value) => (value === '' ? null : Number(value)),
+				})}
+				id="bookmark-folder"
+				disabled={folders.isLoading}
+				className={cn(
+					'h-8 w-full min-w-0 rounded-md border border-input/50 bg-neutral-150 px-2.5 py-1 text-sm outline-none transition-colors focus:border-input disabled:pointer-events-none disabled:opacity-50 dark:bg-input/10',
+				)}
+			>
+				<option value="">최상위</option>
+				{options.map(({ folder, depth }) => (
+					<option key={folder.id} value={folder.id}>
+						{'　'.repeat(depth)}
+						{folder.name}
+					</option>
+				))}
+			</select>
+		</FormField>
+	);
+}
+
+function flattenFolders(
+	folders: FolderTree[],
+	depth = 0,
+): Array<{ folder: FolderTree; depth: number }> {
+	return folders.flatMap((folder) => [
+		{ folder, depth },
+		...flattenFolders(folder.children, depth + 1),
+	]);
 }
 
 function BookmarkMediaPreview({

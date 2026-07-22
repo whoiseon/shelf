@@ -1,6 +1,25 @@
 import { z } from 'zod';
 import { positiveIntId } from './primitives';
 
+export function normalizeBookmarkUrl(value: string) {
+	const url = value.trim();
+	return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+const bookmarkUrlSchema = z
+	.string()
+	.trim()
+	.min(1, { message: 'URL을 입력하세요.' })
+	.transform(normalizeBookmarkUrl)
+	.pipe(z.url({ message: '잘못된 URL 형식입니다.' }))
+	.refine(
+		(url) => {
+			const protocol = new URL(url).protocol;
+			return protocol === 'http:' || protocol === 'https:';
+		},
+		{ message: 'http 또는 https URL만 입력할 수 있습니다.' },
+	);
+
 export const bookmarkSchema = z.object({
 	id: z.number().int(),
 	folderId: z.number().int().positive().nullable(),
@@ -25,7 +44,7 @@ export const createBookmarkSchema = z.object({
 		.trim()
 		.min(1, { message: '사이트 제목을 최소 1자 이상 입력하세요' })
 		.max(200, { message: '사이트 제목은 최대 200자 이하 입력하세요' }),
-	url: z.url({ message: '잘못된 URL 형식입니다.' }),
+	url: bookmarkUrlSchema,
 	description: z.string().trim().max(2000).optional(),
 	siteName: z.string().nullable(),
 	faviconUrl: z.string().nullable(),
@@ -54,7 +73,7 @@ export const updateBookmarkParamSchema = z.object({
 });
 
 export const previewBookmarkUrlSchema = z.object({
-	url: z.url({ message: '잘못된 URL 형식입니다.' }),
+	url: bookmarkUrlSchema,
 });
 
 export const previewBookmarkSchema = z.object({
